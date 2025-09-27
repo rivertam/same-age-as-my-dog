@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Same Age as My Dog Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e8f5e8;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+            display: none;
+        }
+        
+        .result h3 {
+            margin-top: 0;
+            color: #2e7d2e;
+        }
+        
+        .error {
+            background-color: #ffe8e8;
+            border-left-color: #f44336;
+            color: #d32f2f;
+        }
+        
+        .dog-emoji {
+            font-size: 2em;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐕 Same Age as My Dog Calculator</h1>
+        <div class="dog-emoji">🎂🐶</div>
+        
+        <form id="ageCalculator">
+            <div class="form-group">
+                <label for="humanBirthday">Your Birthday:</label>
+                <input type="date" id="humanBirthday" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="dogBirthday">Your Dog's Birthday:</label>
+                <input type="date" id="dogBirthday" required>
+            </div>
+            
+            <button type="submit">Calculate When We're the Same Age!</button>
+        </form>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('ageCalculator').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const humanBirthday = new Date(document.getElementById('humanBirthday').value);
+            const dogBirthday = new Date(document.getElementById('dogBirthday').value);
+            const resultDiv = document.getElementById('result');
+            
+            if (!humanBirthday || !dogBirthday) {
+                showResult('Please enter both birthdays.', true);
+                return;
+            }
+            
+            if (dogBirthday > new Date()) {
+                showResult('Your dog\'s birthday cannot be in the future!', true);
+                return;
+            }
+            
+            if (humanBirthday > new Date()) {
+                showResult('Your birthday cannot be in the future!', true);
+                return;
+            }
+            
+            calculateSameAge(humanBirthday, dogBirthday);
+        });
+        
+        function calculateSameAge(humanBirthday, dogBirthday) {
+            const today = new Date();
+            
+            const humanAgeToday = (today - humanBirthday) / (1000 * 60 * 60 * 24 * 365.25);
+            const dogAgeToday = (today - dogBirthday) / (1000 * 60 * 60 * 24 * 365.25);
+            
+            const dogAgeInDogYears = dogAgeToday * 7;
+            
+            if (Math.abs(humanAgeToday - dogAgeInDogYears) < 0.1) {
+                showResult(`🎉 Amazing! You and your dog are approximately the same age RIGHT NOW!<br>
+                           You: ${humanAgeToday.toFixed(1)} years old<br>
+                           Your dog: ${dogAgeInDogYears.toFixed(1)} dog years old`, false);
+                return;
+            }
+            
+            let targetDate;
+            let message;
+            
+            if (humanAgeToday > dogAgeInDogYears) {
+                const daysDifference = (humanAgeToday - dogAgeInDogYears) * 365.25 / 6;
+                targetDate = new Date(today.getTime() + daysDifference * 24 * 60 * 60 * 1000);
+                message = `Your dog will catch up to your age on <strong>${targetDate.toDateString()}</strong>!<br>
+                          You'll both be approximately ${(humanAgeToday + (daysDifference / 365.25)).toFixed(1)} years old.`;
+            } else {
+                const daysDifference = (dogAgeInDogYears - humanAgeToday) * 365.25 / 8;
+                targetDate = new Date(today.getTime() - daysDifference * 24 * 60 * 60 * 1000);
+                
+                if (targetDate < dogBirthday) {
+                    message = `Your dog was already older than you when they were born! 🐕<br>
+                              At birth, your dog was equivalent to ${(dogAgeInDogYears - humanAgeToday).toFixed(1)} human years older than you.`;
+                } else if (targetDate < today) {
+                    message = `You and your dog were the same age on <strong>${targetDate.toDateString()}</strong>!<br>
+                              You were both approximately ${(humanAgeToday - (daysDifference / 365.25)).toFixed(1)} years old.`;
+                } else {
+                    message = `This calculation suggests a future date, which seems incorrect. Please check your inputs.`;
+                }
+            }
+            
+            showResult(message, false);
+        }
+        
+        function showResult(message, isError) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<h3>${isError ? '❌ Error' : '🎯 Result'}</h3><p>${message}</p>`;
+            resultDiv.className = isError ? 'result error' : 'result';
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
